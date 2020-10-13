@@ -1,11 +1,12 @@
 import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
+import {ReactComponent as Check} from './check.svg';
 
 // Styling
 
 const StyledContainer = styled.div`
-  height: 100vw;
+  height: 100vh;
   padding: 20px;
   
   background: #83a4d4;
@@ -51,6 +52,12 @@ const StyledButton = styled.button`
   &:hover {
     background: #171212;
     color: #ffffff;
+    svg {
+      g {
+        fill: #ffffff;
+        stroke: #ffffff;
+      }
+    }
   }
 `;
 
@@ -88,12 +95,19 @@ const StyledInput = styled.input`
 const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
 
 const useSemiPersistentState = (key, initialState) => {
+    const isMounted = useRef(false);
+
     const [value, setValue] = useState(
         localStorage.getItem(key) || initialState
     );
 
     useEffect(() => {
-        localStorage.setItem(key, value);
+        if (!isMounted.current) {
+            isMounted.current = true;
+        } else {
+            console.log('A');
+            localStorage.setItem(key, value);
+        }
     }, [value, key])
 
     return [value, setValue]
@@ -163,12 +177,12 @@ const App = () => {
         handleFetchStories();
     }, [handleFetchStories]);
 
-    const handleRemoveStory = item => {
+    const handleRemoveStory = useCallback(item => {
         dispatchStories({
             type: 'REMOVE_STORY',
             payload: item
         });
-    };
+    }, []);
 
     const handleSearchInput = event => {
         setSearchTerm(event.target.value);
@@ -178,6 +192,8 @@ const App = () => {
         event.preventDefault();
         setUrl(`${API_ENDPOINT}${searchTerm}`)
     };
+
+    console.log('B:App');
 
     return (
         <StyledContainer>
@@ -219,8 +235,17 @@ const InputWithLabel = ({id, label, value, type = 'text', onInputChange, isFocus
     )
 };
 
-const List = ({list, onRemoveItem}) =>
-    list.map(item => <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem}/>)
+const List = React.memo(
+    ({list, onRemoveItem}) =>
+        console.log('B:List') ||
+        list.map(item => (
+            <Item
+                key={item.objectID}
+                item={item}
+                onRemoveItem={onRemoveItem}
+            />
+        ))
+);
 
 const Item = ({item, onRemoveItem}) => (
     <StyledItem>
@@ -232,7 +257,7 @@ const Item = ({item, onRemoveItem}) => (
         <StyledColumn width='10%'>{item.points}</StyledColumn>
         <StyledColumn width='10%'>
             <StyledButtonSmall type='button' onClick={() => onRemoveItem(item)}>
-                Dismiss
+                <Check height='18px' width='18px'/>
             </StyledButtonSmall>
         </StyledColumn>
     </StyledItem>
