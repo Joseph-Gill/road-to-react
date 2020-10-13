@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
 import {ReactComponent as Check} from './check.svg';
@@ -105,7 +105,7 @@ const useSemiPersistentState = (key, initialState) => {
         if (!isMounted.current) {
             isMounted.current = true;
         } else {
-            console.log('A');
+            console.log('A:SEMI PERSISTENT CUSTOM HOOK');
             localStorage.setItem(key, value);
         }
     }, [value, key])
@@ -144,6 +144,14 @@ const storiesReducer = (state, action) => {
         default:
             throw new Error();
     }
+};
+
+const getSumComments = stories => {
+    console.log('C:SUM COMMENTS');
+    return stories.data.reduce(
+        (result, value) => result + value.num_comments,
+        0
+    );
 };
 
 const App = () => {
@@ -193,11 +201,13 @@ const App = () => {
         setUrl(`${API_ENDPOINT}${searchTerm}`)
     };
 
+    const sumComments = useMemo(() => getSumComments(stories), [stories]);
+
     console.log('B:App');
 
     return (
         <StyledContainer>
-            <StyledHeadlinePrimary>My Hacker Stories</StyledHeadlinePrimary>
+            <StyledHeadlinePrimary>My Hacker Stories with {sumComments} comments.</StyledHeadlinePrimary>
             <SearchForm
                 searchTerm={searchTerm}
                 onSearchInput={handleSearchInput}
