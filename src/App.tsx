@@ -219,7 +219,6 @@ const storiesReducer = (state: StoriesState, action: StoriesAction) => {
 };
 
 const getSumComments = (stories: any) => {
-    console.log('C:SUM COMMENTS');
     return stories.data.reduce(
         (result: any, value: any) => result + value.num_comments,
         0
@@ -244,7 +243,6 @@ const App = () => {
 
         try {
             const result = await axios.get(url)
-            console.log('Test spot 1')
             dispatchStories({
                 type: 'STORIES_FETCH_SUCCESS',
                 payload: result.data.hits,
@@ -275,8 +273,6 @@ const App = () => {
     };
 
     const sumComments = useMemo(() => getSumComments(stories), [stories]);
-
-    console.log('B:App');
 
     return (
         <StyledContainer>
