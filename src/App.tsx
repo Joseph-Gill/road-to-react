@@ -31,7 +31,7 @@ const StyledColumn = styled.span`
   padding: 0 5px;
   white-space: nowrap;
   overflow: hidden;
-  white-space: nowrap;
+  //white-space: nowrap;
   text-overflow: ellipsis;
   
   a {
@@ -218,9 +218,9 @@ const storiesReducer = (state: StoriesState, action: StoriesAction) => {
     }
 };
 
-const getSumComments = (stories: any) => {
+const getSumComments = (stories: { data: Stories; }) => {
     return stories.data.reduce(
-        (result: any, value: any) => result + value.num_comments,
+        (result: number, value: { num_comments: number; }) => result + value.num_comments,
         0
     );
 };
