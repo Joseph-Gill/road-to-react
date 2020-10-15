@@ -370,3 +370,5 @@ const SearchForm = ({searchTerm, onSearchInput, onSearchSubmit}: SearchFormProps
 );
 
 export default App;
+
+export { SearchForm, InputWithLabel, List, Item };
