@@ -68,13 +68,18 @@ const Item = ({item, onRemoveItem}: ItemProps) => (
 
 const List: React.FunctionComponent<ListProps> = ({list, onRemoveItem}: ListProps) => {
 
-    const [sort, setSort] = useState('NONE');
+    const [sort, setSort] = useState({
+        sortKey: 'NONE',
+        isReverse: false,
+    });
 
     const handleSort = (sortKey: string) => {
-        setSort(sortKey);
+        const isReverse: boolean = sort.sortKey === sortKey && !sort.isReverse;
+
+        setSort({ sortKey, isReverse});
     }
 
-    const SORTS = {
+    const SORTS: {[index: string]: any} = {
         NONE: (list: Stories) => list,
         TITLE: (list: Stories) => sortBy(list, 'title'),
         AUTHOR: (list: Stories) => sortBy(list, 'author'),
@@ -82,9 +87,9 @@ const List: React.FunctionComponent<ListProps> = ({list, onRemoveItem}: ListProp
         POINT: (list: Stories) => sortBy(list, 'points').reverse(),
     };
 
-    const sortFunction = SORTS[sort];
+    const sortFunction = SORTS[sort.sortKey];
 
-    const sortedList = sortFunction(list);
+    const sortedList = sort.isReverse ? sortFunction(list).reverse() : sortFunction(list);
 
     return (
         <>
