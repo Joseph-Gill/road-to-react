@@ -7,6 +7,7 @@ import useSemiPersistentState from "./CustomHooks";
 import storiesReducer from "./Reducer";
 import {Stories, Story} from "./GlobalTypes";
 import {API_ENDPOINT} from "./constants";
+import { StyledButton } from './GlobalStylings';
 
 // Styling //
 
@@ -28,22 +29,48 @@ const StyledHeadlinePrimary = styled.h1`
 
 const App: React.FunctionComponent = () => {
 
+    const getUrl = (searchTerm: string) => `${API_ENDPOINT}${searchTerm}`
+
     const [searchTerm, setSearchTerm] = useSemiPersistentState('search', 'React');
 
-    const [url, setUrl] = useState(
-        `${API_ENDPOINT}${searchTerm}`
-    )
+    const [urls, setUrls] = useState([
+        getUrl(searchTerm)
+    ]);
 
     const [stories, dispatchStories] = useReducer(
         storiesReducer,
         {data: [], isLoading: false, isError: false}
     );
 
+    const extractSearchTerm = (url: string) => url.replace(API_ENDPOINT, '');
+
+    const getLastSearches = (urls: Array<string>) =>
+        urls.slice(-5).map(url => extractSearchTerm(url));
+
+    const handleSearch = (searchTerm: string) => {
+        const url = getUrl(searchTerm);
+        setUrls(urls.concat(url));
+    }
+
+    const handleLastSearch = (searchTerm: string) => {
+        handleSearch(searchTerm);
+    }
+
+    const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        handleSearch(searchTerm);
+    };
+
+    const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value);
+    }
+
     const handleFetchStories = useCallback(async () => {
         dispatchStories({type: 'STORIES_FETCH_INIT'});
 
         try {
-            const result = await axios.get(url)
+            const lastUrl = urls[urls.length - 1];
+            const result = await axios.get(lastUrl)
             dispatchStories({
                 type: 'STORIES_FETCH_SUCCESS',
                 payload: result.data.hits,
@@ -51,7 +78,7 @@ const App: React.FunctionComponent = () => {
         } catch {
             dispatchStories({type: 'STORIES_FETCH_FAILURE'})
         }
-    }, [url]);
+    }, [urls]);
 
     useEffect(() => {
         handleFetchStories();
@@ -63,15 +90,6 @@ const App: React.FunctionComponent = () => {
             payload: item
         });
     }, []);
-
-    const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(event.target.value);
-    }
-
-    const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setUrl(`${API_ENDPOINT}${searchTerm}`)
-    };
 
     const getSumComments = (stories: { data: Stories; }) => {
         return stories.data.reduce(
@@ -90,6 +108,17 @@ const App: React.FunctionComponent = () => {
                 onSearchInput={handleSearchInput}
                 onSearchSubmit={handleSearchSubmit}
             />
+
+            {getLastSearches(urls).map((searchTerm, index) => (
+                <StyledButton
+                    key={searchTerm + index}
+                    type='button'
+                    onClick={() => handleLastSearch(searchTerm)}
+                >
+                    {searchTerm}
+                </StyledButton>
+            ))}
+
             {stories.isError && <p>Something went wrong ...</p>}
             {stories.isLoading ?
                 (<p>Loading ...</p>) : (<List list={stories.data} onRemoveItem={handleRemoveStory}/>)}
