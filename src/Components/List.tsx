@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import styled from "styled-components";
 import {ReactComponent as Check} from "../Media/check.svg";
 import {StyledButton} from "../GlobalStylings";
 import {Story} from "../GlobalTypes";
+import { sortBy } from 'lodash';
 
 // TypeScript //
 
@@ -65,17 +66,53 @@ const Item = ({item, onRemoveItem}: ItemProps) => (
     </StyledItem>
 );
 
-const List: React.FunctionComponent<ListProps> = ({list, onRemoveItem}: ListProps) => (
-    <>
-        {list.map(item => {
-                return (<Item
-                    key={item.objectID}
-                    item={item}
-                    onRemoveItem={onRemoveItem}
-                />)
-            }
-        )}
-    </>
-);
+const List: React.FunctionComponent<ListProps> = ({list, onRemoveItem}: ListProps) => {
+
+    const [sort, setSort] = useState('NONE');
+
+    const handleSort = (sortKey: string) => {
+        setSort(sortKey);
+    }
+
+    const SORTS = {
+        NONE: (list: Stories) => list,
+        TITLE: (list: Stories) => sortBy(list, 'title'),
+        AUTHOR: (list: Stories) => sortBy(list, 'author'),
+        COMMENT: (list: Stories) => sortBy(list, 'num_comments').reverse(),
+        POINT: (list: Stories) => sortBy(list, 'points').reverse(),
+    };
+
+    const sortFunction = SORTS[sort];
+
+    const sortedList = sortFunction(list);
+
+    return (
+        <>
+            <StyledItem>
+                <StyledColumn width="40%">
+                    <StyledButtonSmall type='button' onClick={() => handleSort('TITLE')}>Title</StyledButtonSmall>
+                </StyledColumn>
+                <StyledColumn width="30%">
+                    <StyledButtonSmall type='button' onClick={() => handleSort('AUTHOR')}>Author</StyledButtonSmall>
+                </StyledColumn>
+                <StyledColumn width="10%">
+                    <StyledButtonSmall type='button' onClick={() => handleSort('COMMENT')}>Comments</StyledButtonSmall>
+                </StyledColumn>
+                <StyledColumn width="10%">
+                    <StyledButtonSmall type='button' onClick={() => handleSort('POINT')}>Points</StyledButtonSmall>
+                </StyledColumn>
+                <StyledColumn width="10%">Actions</StyledColumn>
+            </StyledItem>
+            {sortedList.map((item: Story) => {
+                    return (<Item
+                        key={item.objectID}
+                        item={item}
+                        onRemoveItem={onRemoveItem}
+                    />)
+                }
+            )}
+        </>
+    );
+}
 
 export default List;
