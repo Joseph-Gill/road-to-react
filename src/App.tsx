@@ -8,6 +8,7 @@ import storiesReducer from "./Reducer";
 import {Stories, Story} from "./GlobalTypes";
 import {API_ENDPOINT} from "./constants";
 import { StyledButton } from './GlobalStylings';
+import LastSearches from "./Components/LastSearches";
 
 // Styling //
 
@@ -45,7 +46,21 @@ const App: React.FunctionComponent = () => {
     const extractSearchTerm = (url: string) => url.replace(API_ENDPOINT, '');
 
     const getLastSearches = (urls: Array<string>) =>
-        urls.slice(-5).map(url => extractSearchTerm(url));
+        urls
+            .reduce((result: Array<string>, url: string, index: number) => {
+                const searchTerm = extractSearchTerm(url);
+                if (index === 0) {
+                    return result.concat(searchTerm);
+                }
+                const previousSearchTerm = result[result.length - 1];
+                if (searchTerm === previousSearchTerm) {
+                    return result
+                } else {
+                    return result.concat(searchTerm);
+                }
+            }, [])
+            .slice(-6)
+            .slice(0, -1);
 
     const handleSearch = (searchTerm: string) => {
         const url = getUrl(searchTerm);
@@ -53,6 +68,7 @@ const App: React.FunctionComponent = () => {
     }
 
     const handleLastSearch = (searchTerm: string) => {
+        setSearchTerm(searchTerm);
         handleSearch(searchTerm);
     }
 
@@ -109,15 +125,11 @@ const App: React.FunctionComponent = () => {
                 onSearchSubmit={handleSearchSubmit}
             />
 
-            {getLastSearches(urls).map((searchTerm, index) => (
-                <StyledButton
-                    key={searchTerm + index}
-                    type='button'
-                    onClick={() => handleLastSearch(searchTerm)}
-                >
-                    {searchTerm}
-                </StyledButton>
-            ))}
+            <LastSearches
+                getLastSearches={getLastSearches}
+                urls={urls}
+                handleLastSearch={handleLastSearch}
+            />
 
             {stories.isError && <p>Something went wrong ...</p>}
             {stories.isLoading ?
